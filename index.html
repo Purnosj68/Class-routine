@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>KUET Class Routine</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+
+    h1, h2, h3 {
+      text-align: center;
+      margin: 5px 0;
+      color: #006400;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    th, td {
+      border: 1px solid #aaa;
+      padding: 10px;
+    }
+
+    th {
+      background-color: #d0f0c0;
+    }
+
+    td.editable {
+      cursor: pointer;
+    }
+
+    td.editable:hover {
+      background-color: #f0f8ff;
+    }
+
+    tr.highlight {
+      background-color: #ffffcc !important;
+    }
+
+    .buttons {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    button, select {
+      margin: 5px;
+      padding: 10px 15px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+  </style>
+
+  <!-- jsPDF & html2canvas -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body>
+
+  <div id="routineContainer">
+    <h1>Khulna University of Engineering and Technology</h1>
+    <h2>Department of Mechanical Engineering</h2>
+    <h3 id="sectionHeader">Class Routine - Section <span id="sectionText">B</span></h3>
+
+    <table id="routineTable">
+      <thead>
+        <tr>
+          <th>Day / Time</th>
+          <th>8.00 - 8.50</th>
+          <th>8.50 - 9.40</th>
+          <th>9.40 - 10.30</th>
+          <th>10.40 - 11.30</th>
+          <th>11.30 - 12.20</th>
+          <th>12.20 - 1.10</th>
+          <th>2.30 - 3.20</th>
+          <th>3.20 - 4.10</th>
+          <th>4.10 - 5.00</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><th>Sunday</th><td class="editable">-</td><td class="editable">ME 3205<br>MII</td><td class="editable">ME 3215<br>AI</td><td class="editable">ME 3217<br>AKD</td><td class="editable">ME 3223<br>RA</td><td class="editable">-</td><td class="editable">-</td><td class="editable">-</td><td class="editable">ME 3226<br>MGK/HAN</td></tr>
+        <tr><th>Monday</th><td class="editable">-</td><td class="editable">ME 3223<br>MAI</td><td class="editable">-</td><td class="editable">ME 3225<br>HAN</td><td class="editable">ME 3215<br>DM</td><td class="editable">ME 3217<br>AKD/MAZ</td><td class="editable">-</td><td class="editable">-</td><td class="editable">ME 3218<br>AKD/MAZ</td></tr>
+        <tr><th>Tuesday</th><td class="editable">-</td><td class="editable">ME 3223<br>RA</td><td class="editable">ME 3225<br>MGK/HAN</td><td class="editable">ME 3205<br>KAH</td><td class="editable">ME 3215<br>AI</td><td class="editable">-</td><td class="editable">-</td><td class="editable">-</td><td class="editable">ME 3216<br>DM/RA</td></tr>
+        <tr><th>Wednesday</th><td class="editable">-</td><td class="editable">ME 3225<br>MGK</td><td class="editable">ME 3223<br>MAI</td><td class="editable" colspan="6">ME 3206<br>MII/KAH</td></tr>
+        <tr><th>Thursday</th><td class="editable">-</td><td class="editable">ME 3215<br>DM</td><td class="editable">ME 3217<br>MAZ</td><td class="editable">ME 3205<br>KAH/MII</td><td class="editable">-</td><td class="editable">-</td><td class="editable">-</td><td class="editable">-</td><td class="editable">ME 3200</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="buttons">
+    <button onclick="saveRoutine()">💾 Save</button>
+    <button onclick="loadRoutine()">📂 Load</button>
+    <button onclick="resetRoutine()">♻️ Reset</button>
+    <button onclick="exportToPDF()">📄 Export PDF</button>
+    <label>
+      ✏️ Change Section:
+      <select onchange="changeSection(this.value)">
+        <option value="A">A</option>
+        <option value="B" selected>B</option>
+        <option value="C">C</option>
+      </select>
+    </label>
+  </div>
+
+  <script>
+    // Make cells editable
+    function bindEditEvents() {
+      document.querySelectorAll('.editable').forEach(cell => {
+        cell.addEventListener('click', function () {
+          const newValue = prompt("Enter new value:", this.innerHTML);
+          if (newValue !== null) {
+            this.innerHTML = newValue;
+          }
+        });
+      });
+    }
+    bindEditEvents();
+
+    // Highlight today's row
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const today = new Date().getDay();
+    document.querySelectorAll('tbody tr').forEach(row => {
+      if (row.firstElementChild.innerText === days[today]) {
+        row.classList.add("highlight");
+      }
+    });
+
+    // Section change
+    function changeSection(value) {
+      document.getElementById("sectionText").innerText = value;
+    }
+
+    // Save to localStorage
+    function saveRoutine() {
+      const data = {
+        table: document.getElementById('routineTable').innerHTML,
+        section: document.getElementById('sectionText').innerText
+      };
+      localStorage.setItem('routineData', JSON.stringify(data));
+      alert("Routine saved!");
+    }
+
+    // Load from localStorage
+    function loadRoutine() {
+      const saved = localStorage.getItem('routineData');
+      if (saved) {
+        const data = JSON.parse(saved);
+        document.getElementById('routineTable').innerHTML = data.table;
+        document.getElementById('sectionText').innerText = data.section;
+        bindEditEvents();
+        alert("Routine loaded!");
+      } else {
+        alert("No saved routine found.");
+      }
+    }
+
+    // Reset
+    function resetRoutine() {
+      localStorage.removeItem('routineData');
+      location.reload();
+    }
+
+    // Export to PDF
+    async function exportToPDF() {
+      const element = document.getElementById("routineContainer");
+      const canvas = await html2canvas(element, { scale: 2, useCORS: true });
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jspdf.jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      pdf.addImage(imgData, 'PNG', 10, 10, pdfWidth - 20, pdfHeight);
+      const section = document.getElementById("sectionText").innerText;
+      pdf.save(`KUET_Routine_Section_${section}.pdf`);
+    }
+  </script>
+
+</body>
+</html>
